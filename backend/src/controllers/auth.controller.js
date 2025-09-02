@@ -6,6 +6,18 @@ const bcrypt = require("bcryptjs");
 async function registerController(req, res) {
   const { username, password } = req.body;
 
+  // Added input validation
+  if (!username || !password) {
+    return res.status(400).json({
+      message: "Username and password are required",
+    });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({
+      message: "Password must be at least 6 characters long",
+    });
+  }
+
   const userExist = await userModel.findOne({ username });
   if (userExist) {
     return res.status(400).json({
