@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "../api/axios";
+import { useNavigate } from "react-router-dom";
 
 export default function CreatePost() {
   const [file, setFile] = useState(null);
@@ -7,9 +8,10 @@ export default function CreatePost() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const onFile = (e) => {
-    const f = e.target.files;
+    const f = e.target.files[0];
     setFile(f || null);
     setResult(null);
     setError("");
@@ -42,21 +44,31 @@ export default function CreatePost() {
   };
 
   return (
-    <div style={{ maxWidth: 560 }}>
+    <div className="card auth-form">
       <h2>Create Post</h2>
       <form onSubmit={onSubmit}>
         <input type="file" accept="image/*" onChange={onFile} />
-        {preview && <img src={preview} alt="preview" style={{ width: 300, marginTop: 12 }} />}
+        {preview && (
+          <img
+            src={preview}
+            alt="preview"
+            style={{ width: 300, marginTop: 12, marginBottom: 12 }}
+          />
+        )}
         <div style={{ marginTop: 12 }}>
-          <button type="submit" disabled={submitting}>{submitting ? "Uploading..." : "Upload"}</button>
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Uploading..." : "Upload"}
+          </button>
         </div>
       </form>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
       {result && (
-        <div style={{ marginTop: 24, borderTop: "1px solid #eee", paddingTop: 12 }}>
-          <h3>Created</h3>
+        <div className="card" style={{ marginTop: 24, padding: 12 }}>
+          <h3>Created Post</h3>
           <img src={result.image} alt="uploaded" style={{ width: 300 }} />
-          <p><strong>Caption:</strong> {result.caption}</p>
+          <p>
+            <strong>Caption:</strong> {result.caption}
+          </p>
         </div>
       )}
     </div>
