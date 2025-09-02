@@ -5,14 +5,13 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Optional: response error handling
+// This interceptor will no longer force a page reload.
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
-      // Not authenticated; redirect to login
-      window.location.href = "/login";
-    }
+    // The hard redirect is removed to prevent the refresh loop.
+    // The useAuth hook will catch the 401 error and set the user state to null,
+    // allowing React Router to handle the redirect declaratively.
     return Promise.reject(err);
   }
 );

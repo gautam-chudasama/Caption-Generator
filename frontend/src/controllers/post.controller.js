@@ -24,6 +24,7 @@ async function createPostController(req, res) {
     user: req.user._id,
   });
 
+
   res.status(201).json({
     message: "Post created successfully",
     post,
