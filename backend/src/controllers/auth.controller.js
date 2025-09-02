@@ -19,7 +19,7 @@ async function registerController(req, res) {
   });
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-  res.cookie("token", token);
+  res.cookie("token", token, { httpOnly: true });
 
   res.status(201).json({
     message: "Registered successfully",
@@ -48,7 +48,7 @@ async function loginController(req, res) {
   }
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-  res.cookie("token", token);
+  res.cookie("token", token, { httpOnly: true });
 
   res.status(200).json({
     message: "Login successfully",
@@ -59,7 +59,29 @@ async function loginController(req, res) {
   });
 }
 
+// logout controller
+async function logoutController(req, res) {
+  res.clearCookie("token");
+  res.status(200).json({
+    message: "Logout successful",
+  });
+}
+
+// Controller to get current user data
+async function getMeController(req, res) {
+  // req.user is populated by the authMiddleware
+  res.status(200).json({
+    message: "User fetched successfully",
+    user: {
+      username: req.user.username,
+      id: req.user._id,
+    },
+  });
+}
+
 module.exports = {
   registerController,
   loginController,
+  logoutController,
+  getMeController,
 };

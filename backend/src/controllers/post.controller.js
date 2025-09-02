@@ -30,6 +30,27 @@ async function createPostController(req, res) {
   });
 }
 
+// New controller to get all posts
+async function getPostsController(req, res) {
+  try {
+    const posts = await postModel
+      .find()
+      .populate("user", "username")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      message: "Posts fetched successfully",
+      posts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch posts",
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
   createPostController,
+  getPostsController,
 };
