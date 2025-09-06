@@ -1,8 +1,7 @@
 const { GoogleGenAI } = require("@google/genai");
-require("dotenv").config();
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+  // apiKey: process.env.GEMINI_API_KEY,
 });
 
 async function generateCaption(base64ImageFile) {
