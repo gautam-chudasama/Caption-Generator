@@ -9,6 +9,7 @@ export default function Feed() {
   const [error, setError] = useState("");
   const [selectedPost, setSelectedPost] = useState(null);
   const [retrying, setRetrying] = useState(false);
+  const [imageLoadErrors, setImageLoadErrors] = useState(new Set());
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -19,9 +20,9 @@ export default function Feed() {
       const response = await api.get("/api/posts");
       setPosts(response.data.posts || []);
       setError("");
+      setImageLoadErrors(new Set()); // Reset image errors on successful fetch
     } catch (err) {
       if (err.response?.status === 401) {
-        // User is not authenticated, posts might require auth
         setPosts([]);
       } else {
         setError(
@@ -46,14 +47,23 @@ export default function Feed() {
 
   const handlePostClick = (post) => {
     setSelectedPost(post);
-    // Add scroll lock when modal is open
     document.body.style.overflow = "hidden";
   };
 
   const closeModal = () => {
     setSelectedPost(null);
-    // Remove scroll lock when modal is closed
     document.body.style.overflow = "unset";
+  };
+
+  const handleImageError = (postId) => {
+    setImageLoadErrors((prev) => new Set(prev).add(postId));
+  };
+
+  const handleKeyPress = (event, callback) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      callback();
+    }
   };
 
   // Clean up on unmount
@@ -63,21 +73,31 @@ export default function Feed() {
     };
   }, []);
 
+  // Enhanced loading component
   if (loading) {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
-        <p>Loading amazing moments...</p>
+        <p>✨ Loading amazing moments...</p>
       </div>
     );
   }
 
+  // Enhanced error state
   if (error && user) {
     return (
       <div className="empty-state">
-        <div style={{ fontSize: "64px", marginBottom: "20px" }}>😞</div>
+        <div
+          style={{
+            fontSize: "80px",
+            marginBottom: "24px",
+            animation: "bounce 2s infinite",
+          }}
+        >
+          😞
+        </div>
         <h3>Oops! Something went wrong</h3>
-        <p style={{ color: "var(--error-color)", marginBottom: "32px" }}>
+        <p style={{ color: "var(--error-color)", marginBottom: "40px" }}>
           {error}
         </p>
         <button
@@ -100,60 +120,168 @@ export default function Feed() {
 
   return (
     <div className="feed-container fade-in">
+      {/* Enhanced header with animated gradient text */}
       <div className="feed-header">
-        <h1>Discover Amazing Moments</h1>
+        <h1 className="gradient-text">Discover Amazing Moments</h1>
         <p>
-          AI-powered captions that bring your photos to life with creativity and
-          fun
+          🎨 AI-powered captions that bring your photos to life with creativity
+          and fun ✨
         </p>
       </div>
 
       {posts.length > 0 ? (
         <>
+          {/* Posts statistics */}
           <div className="posts-stats">
             <p>
-              {posts.length} amazing {posts.length === 1 ? "moment" : "moments"}{" "}
-              shared by our community
+              🌟 {posts.length} amazing{" "}
+              {posts.length === 1 ? "moment" : "moments"} shared by our creative
+              community
             </p>
           </div>
+
+          {/* Enhanced posts grid with staggered animations */}
           <div className="posts-grid">
             {posts.map((post, index) => (
               <div
                 key={post._id}
-                className="post-card card"
+                className="post-card glass-card slide-in-up"
                 onClick={() => handlePostClick(post)}
+                onKeyPress={(e) =>
+                  handleKeyPress(e, () => handlePostClick(post))
+                }
+                tabIndex={0}
+                role="button"
+                aria-label={`View post by ${
+                  post.user?.username || "anonymous"
+                }`}
                 style={{
                   animationDelay: `${index * 0.1}s`,
-                  animation: "slideInUp 0.5s ease-out forwards",
                 }}
               >
-                <img
-                  src={post.image}
-                  alt="User post"
-                  loading="lazy"
-                  onError={(e) => {
-                    e.target.src =
-                      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjBGMEYwIi8+CjxwYXRoIGQ9Ik0xMDAgNzBDOTAuNTkgNzAgODMgNzcuNTkgODMgODdDODMgOTYuNDEgOTAuNTkgMTA0IDEwMCAxMDRDMTA5LjQxIDEwNCAxMTcgOTYuNDEgMTE3IDg3QzExNyA3Ny41OSAxMDkuNDEgNzAgMTAwIDcwWiIgZmlsbD0iI0Q5RDlEOSIvPgo8cGF0aCBkPSJNMTQwIDEzMEg2MEw3NSAxMDBMOTAgMTE1TDExMCAxMDBMMTQwIDEzMFoiIGZpbGw9IiNEOUQ5RDkiLz4KPC9zdmc+";
-                  }}
-                />
+                {!imageLoadErrors.has(post._id) ? (
+                  <img
+                    src={post.image}
+                    alt={`Post by ${post.user?.username || "anonymous"}`}
+                    loading="lazy"
+                    onError={() => handleImageError(post._id)}
+                  />
+                ) : (
+                  <div
+                    className="image-placeholder"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "var(--bg-secondary)",
+                      color: "var(--text-muted)",
+                      fontSize: "48px",
+                    }}
+                  >
+                    📸
+                  </div>
+                )}
+
                 <div className="post-overlay">
                   <p className="post-caption">{post.caption}</p>
-                  <p className="post-author">
-                    📸 @{post.user?.username || "anonymous"}
-                  </p>
+                  <div className="post-meta">
+                    <p className="post-author">
+                      👤 @{post.user?.username || "anonymous"}
+                    </p>
+                    {post.createdAt && (
+                      <p
+                        className="post-date"
+                        style={{
+                          fontSize: "12px",
+                          color: "rgba(255, 255, 255, 0.8)",
+                          marginTop: "8px",
+                        }}
+                      >
+                        🕒{" "}
+                        {new Date(post.createdAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Call to action for authenticated users */}
+          {user && (
+            <div
+              style={{
+                textAlign: "center",
+                marginTop: "60px",
+                animation: "fadeInUp 1s ease-out",
+              }}
+            >
+              <div
+                style={{
+                  background: "var(--bg-glass)",
+                  backdropFilter: "blur(20px) saturate(180%)",
+                  padding: "40px",
+                  borderRadius: "var(--radius-xl)",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  boxShadow: "var(--shadow-xl)",
+                  maxWidth: "600px",
+                  margin: "0 auto",
+                }}
+              >
+                <div style={{ fontSize: "48px", marginBottom: "20px" }}>🎨</div>
+                <h3
+                  style={{
+                    fontSize: "24px",
+                    fontWeight: "800",
+                    marginBottom: "16px",
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Ready to share your moment?
+                </h3>
+                <p
+                  style={{
+                    color: "var(--text-secondary)",
+                    marginBottom: "24px",
+                    fontSize: "16px",
+                    fontWeight: "500",
+                  }}
+                >
+                  Upload your photo and let AI create the perfect caption
+                </p>
+                <button
+                  onClick={() => navigate("/create")}
+                  className="nav-button"
+                  style={{ fontSize: "16px", padding: "16px 32px" }}
+                >
+                  ✨ Create Your Post
+                </button>
+              </div>
+            </div>
+          )}
         </>
       ) : (
+        // Enhanced empty state
         <div className="empty-state">
-          <div style={{ fontSize: "80px", marginBottom: "24px" }}>📸</div>
+          <div
+            style={{
+              fontSize: "100px",
+              marginBottom: "32px",
+              animation: "bounce 2s ease-in-out infinite",
+            }}
+          >
+            📸
+          </div>
           <h3>No posts yet</h3>
           <p>
             {user
-              ? "Be the first to share your moment with an AI-generated caption!"
-              : "Join our community to discover and share amazing moments with AI-powered captions"}
+              ? "🌟 Be the first to share your moment with an AI-generated caption!"
+              : "🎨 Join our creative community to discover and share amazing moments with AI-powered captions"}
           </p>
           {user ? (
             <button className="nav-button" onClick={() => navigate("/create")}>
@@ -163,9 +291,10 @@ export default function Feed() {
             <div
               style={{
                 display: "flex",
-                gap: "16px",
+                gap: "20px",
                 justifyContent: "center",
                 flexWrap: "wrap",
+                marginTop: "20px",
               }}
             >
               <button className="nav-button" onClick={() => navigate("/login")}>
@@ -182,31 +311,65 @@ export default function Feed() {
         </div>
       )}
 
-      {/* Modal */}
+      {/* Enhanced Modal with improved accessibility */}
       {selectedPost && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="modal-overlay"
+          onClick={closeModal}
+          onKeyPress={(e) => {
+            if (e.key === "Escape") closeModal();
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+            role="document"
+          >
             <button
               className="modal-close"
               onClick={closeModal}
               aria-label="Close modal"
+              title="Close modal"
             >
               ×
             </button>
-            <img
-              src={selectedPost.image}
-              alt="Full size post"
-              className="modal-image"
-              onError={(e) => {
-                e.target.src =
-                  "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjBGMEYwIi8+Cjx0ZXh0IHg9IjIwMCIgeT0iMjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjOTk5IiBmb250LXNpemU9IjE2cHgiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPC9zdmc+";
-              }}
-            />
+
+            {!imageLoadErrors.has(selectedPost._id) ? (
+              <img
+                src={selectedPost.image}
+                alt={`Full size post by ${
+                  selectedPost.user?.username || "anonymous"
+                }`}
+                className="modal-image"
+                onError={() => handleImageError(selectedPost._id)}
+              />
+            ) : (
+              <div
+                className="modal-image"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: "var(--bg-secondary)",
+                  color: "var(--text-muted)",
+                  fontSize: "120px",
+                  minHeight: "400px",
+                }}
+              >
+                📸
+              </div>
+            )}
+
             <div className="modal-details">
-              <p className="modal-caption">{selectedPost.caption}</p>
+              <h2 id="modal-title" className="modal-caption">
+                {selectedPost.caption}
+              </h2>
               <div className="modal-meta">
                 <p className="modal-author">
-                  📸 Posted by @{selectedPost.user?.username || "anonymous"}
+                  👤 Posted by @{selectedPost.user?.username || "anonymous"}
                 </p>
                 {selectedPost.createdAt && (
                   <p className="modal-date">
@@ -217,6 +380,8 @@ export default function Feed() {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       }
                     )}
                   </p>
