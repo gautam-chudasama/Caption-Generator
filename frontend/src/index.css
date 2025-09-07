@@ -273,7 +273,7 @@ nav.scrolled {
 
 nav a:not(.nav-logo) {
   text-decoration: none;
-  color: var(--text-secondary);
+  /* color: var(--text-secondary); */
   font-weight: var(--font-weight-semibold);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-xl);
@@ -304,7 +304,7 @@ nav a:not(.nav-logo):hover {
   backdrop-filter: blur(12px);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
-  color: var(--text-primary);
+  color: red;
   scale: 1.05;
 }
 
@@ -325,7 +325,7 @@ nav a.active {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  color: var(--text-primary);
+  color: rgb(56, 134, 217);
   font-weight: var(--font-weight-semibold);
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(16px);
@@ -391,7 +391,7 @@ nav a.active {
 
 .nav-button.secondary {
   background: rgba(255, 255, 255, 0.6);
-  color: var(--text-primary);
+  color: red;
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
