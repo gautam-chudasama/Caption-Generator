@@ -1,6 +1,5 @@
 import { useState } from "react";
 import api from "../api/axios";
-import { useNavigate } from "react-router-dom";
 
 export default function CreatePost() {
   const [file, setFile] = useState(null);
@@ -8,7 +7,6 @@ export default function CreatePost() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
 
   const onFile = (e) => {
     const f = e.target.files[0];
@@ -47,7 +45,7 @@ export default function CreatePost() {
     <div className="card auth-form">
       <h2>Create Post</h2>
       <form onSubmit={onSubmit}>
-        <input type="file" accept="image/*" onChange={onFile} />
+        <input className="upload" type="file" accept="image/*" onChange={onFile} />
         {preview && (
           <img
             src={preview}
